@@ -1,0 +1,57 @@
+# Excalidraw Monorepo — Cursor Rules
+
+This file provides Cursor AI with the top-level conventions for the Excalidraw codebase.
+Detailed rules are in `.cursor/rules/*.mdc`.
+
+## Quick Reference
+
+### Stack
+- TypeScript (strict-ish), React 19, Vite 5, Vitest 3, Yarn Workspaces
+- State: Jotai (via `editor-jotai` / `app-jotai` — never import `jotai` directly)
+- Styling: SCSS modules co-located with components
+- Crypto: Web Crypto API / AES-GCM (see `packages/excalidraw/data/encryption.ts`)
+
+### Package Boundaries (CRITICAL)
+- `packages/*` = library code — zero Firebase / socket.io / env-var dependencies
+- `excalidraw-app/` = app layer — Firebase, collab, sharing live here only
+
+### TypeScript
+- `import type` for all type-only imports (ESLint enforced)
+- `catch (error: unknown)` — never `any` in catch clauses
+- `readonly` arrays for element collections
+- Math points: always `Point` from `@excalidraw/math`, never `{ x, y }` inline
+
+### Security (non-negotiable)
+- No `dangerouslySetInnerHTML` without DOMPurify
+- Validate URL protocol before `window.open` / `location.href`
+- Crypto = `window.crypto.subtle` only; never `Math.random()` for security
+- Secrets in `import.meta.env.VITE_APP_*` only, never hardcoded
+
+### Testing
+- Co-locate tests: `foo.ts` → `foo.test.ts` in the same directory
+- Coverage floor: lines 60%, branches 70%, functions 63%, statements 60%
+- Run: `yarn test:app --watch=false` | `yarn test:typecheck` | `yarn test:code`
+
+### Commits
+Format: `type(scope): description`
+Types: feat | fix | chore | refactor | test | docs | style | perf | ci
+
+### Commands
+```bash
+yarn start                  # dev server
+yarn test:all               # full CI suite (typecheck + lint + prettier + tests)
+yarn test:typecheck         # tsc only
+yarn test:code              # eslint
+yarn test:other             # prettier
+yarn test:app --watch=false # vitest
+yarn build:packages         # build all packages in order
+```
+
+## Detailed Rules
+
+See `.cursor/rules/`:
+- `monorepo-conventions.mdc` — workspace layout, imports, file naming, commits
+- `typescript-conventions.mdc` — type imports, any/unknown, immutability, naming
+- `testing-standards.mdc` — test framework, coverage, helpers, co-location
+- `security-rules.mdc` — XSS, URL validation, crypto, secrets, eval
+- `excalidraw-app.mdc` — app-specific architecture, Firebase, collab, env vars
